@@ -186,6 +186,29 @@ expectKnobOfType<number[]>(
   )
 );
 
+expectKnobOfType<Record<any, any>>(
+  select(
+    'select with object array options',
+    [
+      {
+        label: 'Sparky',
+        dogParent: 'Matthew',
+        location: 'Austin',
+      },
+      {
+        label: 'Juniper',
+        dogParent: 'Joshua',
+        location: 'Austin',
+      },
+    ],
+    {
+      label: 'Juniper',
+      dogParent: 'Joshua',
+      location: 'Austin',
+    }
+  )
+);
+
 /** Object knob */
 
 expectKnobOfType(

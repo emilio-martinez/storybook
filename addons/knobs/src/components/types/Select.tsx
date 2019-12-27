@@ -4,13 +4,19 @@ import PropTypes from 'prop-types';
 import { Form } from '@storybook/components';
 import { KnobControlConfig, KnobControlProps } from './types';
 
-export type SelectTypeKnobValue = string | number | null | undefined | PropertyKey[];
+export type SelectTypeKnobValue =
+  | string
+  | number
+  | null
+  | undefined
+  | PropertyKey[]
+  | Record<PropertyKey, any>;
 
 export type SelectTypeOptionsProp<T extends SelectTypeKnobValue = SelectTypeKnobValue> =
   | Record<PropertyKey, T>
   | Record<Extract<T, PropertyKey>, T[keyof T]>
-  | Extract<T, PropertyKey>[]
-  | readonly Extract<T, PropertyKey>[];
+  | Extract<T, PropertyKey | Record<PropertyKey, any>>[]
+  | readonly Extract<T, PropertyKey | Record<PropertyKey, any>>[];
 
 export interface SelectTypeKnob<T extends SelectTypeKnobValue = SelectTypeKnobValue>
   extends KnobControlConfig<T> {
@@ -31,13 +37,13 @@ const SelectType: FunctionComponent<SelectTypeProps> & {
 } = ({ knob, onChange }) => {
   const { options } = knob;
 
-  const callbackReduceArrayOptions = (acc: any, option: any, i: number) => {
-    if (typeof option !== 'object') return { ...acc, [option]: option };
-    const label = option.label || option.key || i;
-    return { ...acc, [label]: option };
-  };
-
-  const entries = Array.isArray(options) ? options.reduce(callbackReduceArrayOptions, {}) : options;
+  const entries = Array.isArray(options)
+    ? options.reduce<Record<PropertyKey, SelectTypeKnobValue>>((acc, option, i) => {
+        if (typeof option !== 'object') return { ...acc, option };
+        const label = 'label' in option || 'key' in option ? option.label || option.key : i;
+        return { ...acc, [label]: option };
+      }, {})
+    : (options as Record<PropertyKey, SelectTypeKnobValue>);
 
   const selectedKey = Object.keys(entries).find(key => {
     const { value: knobVal } = knob;
@@ -68,7 +74,11 @@ const SelectType: FunctionComponent<SelectTypeProps> & {
 };
 
 SelectType.defaultProps = {
-  knob: {} as any,
+  knob: {
+    name: '',
+    options: [],
+    value: undefined,
+  },
   onChange: value => value,
 };
 
